@@ -2,14 +2,13 @@ import polib
 import re
 import sys
 import os
-from googletrans import Translator
+from src.Translators import Translators
 
-translator = Translator()
 num_max = 0
 num_now = 0
 
 
-def translate(text, lang_in, lang_out):
+def translate_text(text):
     global num_max, num_now
     # Define a dictionary to hold the mappings of bracketed text to placeholders
     placeholders = {}
@@ -29,7 +28,7 @@ def translate(text, lang_in, lang_out):
     while i < 3:
         try:
             if text:
-                text = translator.translate(text, dest=lang_out, src=lang_in, timeout=10).text
+                text = translator.translate(text)
                 break
         except Exception as e:
             i += 1
@@ -42,7 +41,7 @@ def translate(text, lang_in, lang_out):
     return text
 
 
-def process_file(filename, lang_in, lang_out):
+def process_file(filename):
     global num_max, num_now
     po = polib.pofile(filename)
 
@@ -53,13 +52,13 @@ def process_file(filename, lang_in, lang_out):
     # Charge entries from .po archive
     for entry in po.translated_entries():
         if entry.msgstr:
-            entry.msgstr = translate(entry.msgid, lang_in, lang_out)
+            entry.msgstr = translate_text(entry.msgid)
 
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
         if not entry.msgstr:
-            entry.msgstr = translate(entry.msgid, lang_in, lang_out)
-    file_out = filename.replace('.po', '_' + lang_out + '.po')
+            entry.msgstr = translate_text(entry.msgid)
+    file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
     print_bar( 100, 'File: ' + file_out + ' saved')
     print('\n')
@@ -94,11 +93,18 @@ if __name__ == '__main__':
     except:
         try:
             with open(file_config, "w") as file:
-                data = {'lang_in': 'en', 'lang_out': 'es'}
+                data = {'lang_in': 'en',
+                        'lang_out': 'es',
+                        'provider': 'GoogleTranslate',
+                        'key': 'None'}
                 file.write(str(data))
         except Exception as e:
-            print(e)
-
+            raise Exception(e)
+    translator = Translators(lang_in=data['lang_in'],
+                             lang_out=data['lang_out'],
+                             provider=data['provider'],
+                             key=data['key'])
     po_files = po_files_list()
     for file_name in po_files:
-        process_file(file_name, data['lang_in'], data['lang_out'])
+        process_file(file_name)
+

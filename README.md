@@ -13,3 +13,9 @@
 
 * lang_ing = Input language
 * lang_out = Output language
+
+### Translators
+
+* GoogleTranslate
+* DeepLTranslator (need a key)
+* YandexTranslate (need a key)
