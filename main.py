@@ -1,6 +1,5 @@
 import polib
 import re
-import sys
 import os
 import ast
 from src.Translators import Translators
@@ -19,29 +18,36 @@ def translate_text(text):
     bracketed_texts = re.findall(r'\[([^\[\]]*?)\]', text)
 
     # Replace each bracketed text with a unique placeholder
-    text = text.replace('\n', '__PPPPPPPPOOOOOOOO_PO__')
+    text = text.replace('\n', '__PPPPPPPPOOOOOOOO_P0__')
     for i, bracketed_text in enumerate(bracketed_texts):
         placeholder = f'__PPPPPPPPOOOOOOOO_{i}__'
         placeholders[placeholder] = f'[{bracketed_text}]'
         text = text.replace(f'[{bracketed_text}]', placeholder)
 
     # Perform the translation
+    text_translated = ''
     i = 0
     while i < 3:
         try:
             if text:
-                text = translator.translate(text)
+                text_translated = ''
+                text_box = split_text(text, '.')
+                for tx in text_box:
+                    text_translated += translator.translate(tx) + ' '
+            else:
+                text_translated = text
             break
         except Exception as e:
             i += 1
-            print_bar(get_percent(), 'Error: ' + str(e) + ' : ' + text + ' ' + '(' + str(i) + ')')
+            print_bar(get_percent(), get_text_color('Error: ' + str(e) + ' : ' + text + ' ' + '(' + str(i) + ')', 'red'))
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
-        text = text.replace(placeholder, bracketed_text)
-    text = text.replace('__PPPPPPPPOOOOOOOO_PO__', '\n')
+        text_translated = text_translated.replace(placeholder, bracketed_text)
+    text_translated = text_translated.replace('__PPPPPPPPOOOOOOOO_P0__', '\n')
+
     num_now += 1
-    print_bar(get_percent(), origin_text + ' -> ' + text)
-    return text
+    print_bar(get_percent(), origin_text + ' -> ' + text_translated)
+    return text_translated
 
 
 def process_file(filename):
@@ -65,8 +71,23 @@ def process_file(filename):
             entry.msgstr = translate_text(entry.msgid)
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
-    print_bar( 100, 'File: ' + file_out + ' saved')
+    print_bar( 100, get_text_color('File: ' + file_out + ' saved', 'green'))
     print('\n\n')
+
+
+def split_text(text, delimit):
+    lines = []
+    line_now = ''
+    for character in text:
+        if character in delimit:
+            if line_now:
+                lines.append(line_now)
+            line_now = ''
+        else:
+            line_now += character
+    if line_now:
+        lines.append(line_now)
+    return lines
 
 
 def print_bar(percent, text_out):
@@ -89,6 +110,26 @@ def print_bar(percent, text_out):
     print(output)
     # sys.stdout.write(output)
     # sys.stdout.flush()
+
+
+def get_text_color(text, color):
+    colors = {
+        'black': '\033[30m',
+        'red': '\033[31m',
+        'green': '\033[32m',
+        'yellow': '\033[33m',
+        'blue': '\033[34m',
+        'magenta': '\033[35m',
+        'cian': '\033[36m',
+        'white': '\033[37m'
+    }
+    color_reset = '\033[0m'
+
+    if color.lower() in colors:
+        return colors[color.lower()] + text + color_reset
+    else:
+        print("Color invalid.")
+        return text
 
 
 def get_percent():
@@ -130,4 +171,5 @@ if __name__ == '__main__':
     po_files = po_files_list()
     for file_name in po_files:
         process_file(file_name)
+    input('All process has been finalized, press enter to exit.')
 
