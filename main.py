@@ -33,7 +33,7 @@ def translate_text(text):
                 break
         except Exception as e:
             i += 1
-            print_bar(get_percent(), str(e) + ' : ' + text + ' ' + '(' + str(i) + ')')
+            print_bar(get_percent(), 'Error: ' + str(e) + ' : ' + text + ' ' + '(' + str(i) + ')')
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
         text = text.replace(placeholder, bracketed_text)
@@ -53,12 +53,12 @@ def process_file(filename):
 
     # Charge entries from .po archive
     for entry in po.translated_entries():
-        if entry.msgstr and entry.msgid:
+        if entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
 
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
-        if entry.msgstr and entry.msgid:
+        if entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
@@ -73,11 +73,13 @@ def print_bar(percent, text_out):
         bar_symbols = "=" * progress
     elif percent == 1:
         bar_symbols = '-'
+        progress += 1
     elif percent == 0:
         bar_symbols = ''
     else:
         bar_symbols = "=" * progress
         bar_symbols += '-'
+        progress += 1
     bar_symbols += " " * (long_bar - progress)
     bar = "[" + bar_symbols + "]"
     output = '\r{} {}% {}'.format(bar, percent, text_out)
@@ -121,7 +123,7 @@ if __name__ == '__main__':
                              lang_out=data['lang_out'],
                              provider=data['provider'],
                              key=data['key'])
-    input('Press any key to start...')
+    input('Press enter to start...')
     po_files = po_files_list()
     for file_name in po_files:
         process_file(file_name)
