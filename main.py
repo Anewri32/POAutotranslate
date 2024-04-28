@@ -2,6 +2,7 @@ import polib
 import re
 import sys
 import os
+import ast
 from src.Translators import Translators
 
 num_max = 0
@@ -89,7 +90,10 @@ if __name__ == '__main__':
     file_config = './lang.config'
     try:
         with open(file_config, "r") as file:
-            data = eval(file.read())
+            data = ast.literal_eval(file.read())
+            # Making sure to extract only text
+        for key, value in data.items():
+            data[key] = str(value)
     except:
         try:
             with open(file_config, "w") as file:

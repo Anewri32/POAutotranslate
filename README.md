@@ -8,14 +8,15 @@
  It is also possible to change the 'lang.config' file to configure the languages. The supported languages are the same as those supported by the Google Translate API.
 
 ```
-{'lang_in': 'en', 'lang_out': 'es'}
+{'lang_in': 'en', 'lang_out': 'es', 'provider': 'GoogleTranslate', 'key': 'None'}
 ```
+
 
 * lang_ing = Input language
 * lang_out = Output language
 
 ### Translators
-
+This is the module that contains the supported translators: [Translator.py](src/Translators.py)
 * GoogleTranslate
 * DeepLTranslator (need a key)
 * YandexTranslate (need a key)
