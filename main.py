@@ -46,7 +46,7 @@ def translate_text(text):
     text_translated = text_translated.replace('__PPPPPPPPOOOOOOOO_P0__', '\n')
 
     num_now += 1
-    print_bar(get_percent(), origin_text + ' -> ' + text_translated)
+    print_bar(get_percent(), get_text_color(origin_text, 'magenta') + ' -> ' + get_text_color(text_translated, 'blue'))
     return text_translated
 
 
