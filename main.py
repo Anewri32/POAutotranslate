@@ -16,11 +16,12 @@ def translate_text(text):
     origin_text = text
 
     # Use a regular expression to find all the bracketed text
-    bracketed_texts = re.findall(r'\{[(.*?)]}', text)
+    bracketed_texts = re.findall(r'\[([^\[\]]*?)\]', text)
 
     # Replace each bracketed text with a unique placeholder
+    text = text.replace('\n', '__PPPPPPPPOOOOOOOO_PO__')
     for i, bracketed_text in enumerate(bracketed_texts):
-        placeholder = f'__BRACKET_{i}__'
+        placeholder = f'__PPPPPPPPOOOOOOOO_{i}__'
         placeholders[placeholder] = f'[{bracketed_text}]'
         text = text.replace(f'[{bracketed_text}]', placeholder)
 
@@ -30,15 +31,16 @@ def translate_text(text):
         try:
             if text:
                 text = translator.translate(text)
-                break
+            break
         except Exception as e:
             i += 1
             print_bar(get_percent(), 'Error: ' + str(e) + ' : ' + text + ' ' + '(' + str(i) + ')')
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
         text = text.replace(placeholder, bracketed_text)
+    text = text.replace('__PPPPPPPPOOOOOOOO_PO__', '\n')
     num_now += 1
-    print_bar(get_percent(), origin_text + ' : ' + text)
+    print_bar(get_percent(), origin_text + ' -> ' + text)
     return text
 
 
@@ -49,6 +51,7 @@ def process_file(filename):
 
     num_max = len(po.translated_entries())
     num_max += len(po.untranslated_entries())
+    print('Total entries:', str(num_max))
     num_now = 0
 
     # Charge entries from .po archive
@@ -67,7 +70,7 @@ def process_file(filename):
 
 
 def print_bar(percent, text_out):
-    long_bar = 50
+    long_bar = 25
     progress = int(percent / 100 * long_bar)
     if percent % 2 == 0:
         bar_symbols = "=" * progress

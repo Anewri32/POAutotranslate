@@ -11,15 +11,15 @@ class Translators:
 
     def translate(self, text):
         if self.provider.lower().__eq__('googletranslate'):
-            return self.google_translate(text)
+            return str(self.google_translate(text))
         elif self.provider.lower().__eq__('deepltranslator'):
             if self.key:
-                return self.deepl_translator(text)
+                return str(self.deepl_translator(text))
             else:
                 raise 'Key needed'
         elif self.provider.lower().__eq__('yandextranslate'):
             if self.key:
-                return self.yandex_translate(text)
+                return str(self.yandex_translate(text))
             else:
                 raise 'Key needed'
         else:
