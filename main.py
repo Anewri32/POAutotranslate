@@ -106,7 +106,7 @@ def print_bar(percent, text_out):
         progress += 1
     bar_symbols += " " * (long_bar - progress)
     bar = "[" + bar_symbols + "]"
-    output = '\r{} {}% {}'.format(bar, percent, text_out)
+    output = '\r{} {}% {}'.format(get_text_color(bar, 'cian'), percent, text_out)
     print(output)
     # sys.stdout.write(output)
     # sys.stdout.flush()
