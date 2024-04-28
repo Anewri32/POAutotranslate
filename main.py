@@ -44,6 +44,7 @@ def translate_text(text):
 
 def process_file(filename):
     global num_max, num_now
+    print('Translating', filename)
     po = polib.pofile(filename)
 
     num_max = len(po.translated_entries())
@@ -52,25 +53,37 @@ def process_file(filename):
 
     # Charge entries from .po archive
     for entry in po.translated_entries():
-        if entry.msgstr:
+        if entry.msgstr and entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
 
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
-        if not entry.msgstr:
+        if entry.msgstr and entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
     print_bar( 100, 'File: ' + file_out + ' saved')
-    print('\n')
+    print('\n\n')
 
 
 def print_bar(percent, text_out):
     long_bar = 50
     progress = int(percent / 100 * long_bar)
-    bar = '[' + '#' * progress + ' ' * (long_bar - progress) + ']'
-    sys.stdout.write('\r{} {}% {}'.format(bar, percent, text_out))
-    sys.stdout.flush()
+    if percent % 2 == 0:
+        bar_symbols = "=" * progress
+    elif percent == 1:
+        bar_symbols = '-'
+    elif percent == 0:
+        bar_symbols = ''
+    else:
+        bar_symbols = "=" * progress
+        bar_symbols += '-'
+    bar_symbols += " " * (long_bar - progress)
+    bar = "[" + bar_symbols + "]"
+    output = '\r{} {}% {}'.format(bar, percent, text_out)
+    print(output)
+    # sys.stdout.write(output)
+    # sys.stdout.flush()
 
 
 def get_percent():
@@ -108,6 +121,7 @@ if __name__ == '__main__':
                              lang_out=data['lang_out'],
                              provider=data['provider'],
                              key=data['key'])
+    input('Press any key to start...')
     po_files = po_files_list()
     for file_name in po_files:
         process_file(file_name)
