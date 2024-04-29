@@ -92,16 +92,10 @@ def split_text(text: str, delimit: str):
 
 def print_bar(now: int, max: int, text_out: str = '', long_bar: int = 25):
     percent = int((now * 100) / max)
-    progress = int(percent / 100 * long_bar)
-    if percent % 2 == 0:
-        bar_symbols = "=" * progress
-    elif percent == 1:
-        bar_symbols = '-'
-        progress += 1
-    elif percent == 0:
-        bar_symbols = ''
-    else:
-        bar_symbols = "=" * progress
+    progress_float = percent / 100 * long_bar
+    progress = int(progress_float)
+    bar_symbols = "=" * progress
+    if (progress_float - progress) >= 0.5:
         bar_symbols += '-'
         progress += 1
     bar_symbols += " " * (long_bar - progress)
