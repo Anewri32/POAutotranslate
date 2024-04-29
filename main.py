@@ -1,15 +1,12 @@
+import sys
 import polib
 import re
 import os
 import ast
 from src.Translators import Translators
 
-num_max = 0
-num_now = 0
 
-
-def translate_text(text):
-    global num_max, num_now
+def translate_text(text: str):
     # Define a dictionary to hold the mappings of bracketed text to placeholders
     placeholders = {}
     origin_text = text
@@ -39,43 +36,49 @@ def translate_text(text):
             break
         except Exception as e:
             i += 1
-            print_bar(get_percent(), get_text_color('Error: ' + str(e) + ' : ' + text + ' ' + '(' + str(i) + ')', 'red'))
+            print(get_text_color('Error: {} : {} ({})'.format(e, text, i), 'red'))
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
         text_translated = text_translated.replace(placeholder, bracketed_text)
     text_translated = text_translated.replace('__PPPPPPPPOOOOOOOO_P0__', '\n')
-
-    num_now += 1
-    print_bar(get_percent(), get_text_color(origin_text, 'magenta') + ' -> ' + get_text_color(text_translated, 'blue'))
     return text_translated
 
 
-def process_file(filename):
-    global num_max, num_now
+def process_file(filename: str):
     print('Translating', filename)
     po = polib.pofile(filename)
-
     num_max = len(po.translated_entries())
     num_max += len(po.untranslated_entries())
     print('Total entries:', str(num_max))
     num_now = 0
-
     # Charge entries from .po archive
     for entry in po.translated_entries():
         if entry.msgid:
-            entry.msgstr = translate_text(entry.msgid)
+            if entry.msgid.__eq__('default (' + translator.lang_in + ')'):
+                entry.msgstr = '{} ({})'.format(translator.provider, translator.lang_out)
+            else:
+                entry.msgstr = translate_text(entry.msgid)
+            print_bar(num_now, num_max,
+                      get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue'))
+        num_now += 1
 
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
         if entry.msgid:
-            entry.msgstr = translate_text(entry.msgid)
+            if entry.msgid.__eq__('default (' + translator.lang_in + ')'):
+                entry.msgstr = '{} ({})'.format(translator.provider, translator.lang_out)
+            else:
+                entry.msgstr = translate_text(entry.msgid)
+            print_bar(num_now, num_max,
+                      get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue'))
+        num_now += 1
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
-    print_bar( 100, get_text_color('File: ' + file_out + ' saved', 'green'))
+    print_bar(num_now, num_max, get_text_color('File: ' + file_out + ' saved', 'green'))
     print('\n\n')
 
 
-def split_text(text, delimit):
+def split_text(text: str, delimit: str):
     lines = []
     line_now = ''
     for character in text:
@@ -90,8 +93,8 @@ def split_text(text, delimit):
     return lines
 
 
-def print_bar(percent, text_out):
-    long_bar = 25
+def print_bar(now: int, max: int, text_out: str = '', long_bar: int = 25):
+    percent = int((now * 100) / max)
     progress = int(percent / 100 * long_bar)
     if percent % 2 == 0:
         bar_symbols = "=" * progress
@@ -106,13 +109,13 @@ def print_bar(percent, text_out):
         progress += 1
     bar_symbols += " " * (long_bar - progress)
     bar = "[" + bar_symbols + "]"
-    output = '\r{} {}% {}'.format(get_text_color(bar, 'cian'), percent, text_out)
-    print(output)
-    # sys.stdout.write(output)
-    # sys.stdout.flush()
+    output = '\r{} {}% #{} {}'.format(get_text_color(bar, 'cian'), percent, now, text_out)
+    # print(output)
+    sys.stdout.write(output)
+    sys.stdout.flush()
 
 
-def get_text_color(text, color):
+def get_text_color(text: str, color: str):
     colors = {
         'black': '\033[30m',
         'red': '\033[31m',
@@ -124,16 +127,10 @@ def get_text_color(text, color):
         'white': '\033[37m'
     }
     color_reset = '\033[0m'
-
     if color.lower() in colors:
         return colors[color.lower()] + text + color_reset
     else:
-        print("Color invalid.")
         return text
-
-
-def get_percent():
-    return int((num_now * 100) / num_max)
 
 
 def po_files_list():
@@ -167,9 +164,12 @@ if __name__ == '__main__':
                              lang_out=data['lang_out'],
                              provider=data['provider'],
                              key=data['key'])
-    input('Press enter to start...')
     po_files = po_files_list()
-    for file_name in po_files:
-        process_file(file_name)
-    input('All process has been finalized, press enter to exit.')
-
+    if po_files:
+        print(get_text_color('Detected files: ' + str(po_files), 'cian'))
+        input('Press enter to start...')
+        for file_name in po_files:
+            process_file(file_name)
+        input('All process has been finalized, press enter to exit.')
+    else:
+        input('No files with .po extension were detected, press enter to exit.')

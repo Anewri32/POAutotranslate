@@ -6,19 +6,19 @@ class Translators:
     def __init__(self, lang_out, lang_in='auto', key='None', provider='GoogleTranslate'):
         self.lang_in = lang_in
         self.lang_out = lang_out
-        self.key = key
+        self.__key = key
         self.provider = provider
 
     def translate(self, text):
         if self.provider.lower().__eq__('googletranslate'):
             return str(self.google_translate(text))
         elif self.provider.lower().__eq__('deepltranslator'):
-            if self.key:
+            if self.__key:
                 return str(self.deepl_translator(text))
             else:
                 raise 'Key needed'
         elif self.provider.lower().__eq__('yandextranslate'):
-            if self.key:
+            if self.__key:
                 return str(self.yandex_translate(text))
             else:
                 raise 'Key needed'
@@ -36,7 +36,7 @@ class Translators:
 
     def deepl_translator(self, text):
         response = requests.get('https://api-free.deepl.com/v2/translate?auth_key={}&text={}&source_lang={}&target_lang={}'.format(
-            self.key, text, self.lang_out, self.lang_in))
+            self.__key, text, self.lang_out, self.lang_in))
         if response.status_code == 200:
             return response.json()["text"][0]
         else:
@@ -44,7 +44,7 @@ class Translators:
 
     def yandex_translate(self, text):
         response = requests.get('https://translate.yandex.net/api/v1.5/tr.json/translate?key={}&text={}&lang={}-{}'.format(
-            self.key, text, self.lang_in, self.lang_out))
+            self.__key, text, self.lang_in, self.lang_out))
         if response.status_code == 200:
             return response.json()["text"][0]
         else:
