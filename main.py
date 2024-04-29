@@ -1,18 +1,15 @@
-import sys
-import polib
-import re
-import os
-import ast
+from polib import pofile
+from re import findall
+from os import getcwd, listdir
+from ast import literal_eval
 from src.Translators import Translators
 
 
 def translate_text(text: str):
-    # Define a dictionary to hold the mappings of bracketed text to placeholders
     placeholders = {}
-    origin_text = text
 
     # Use a regular expression to find all the bracketed text
-    bracketed_texts = re.findall(r'\[([^\[\]]*?)\]', text)
+    bracketed_texts = findall(r'\[([^\[\]]*?)]', text)
 
     # Replace each bracketed text with a unique placeholder
     text = text.replace('\n', '__PPPPPPPPOOOOOOOO_P0__')
@@ -46,10 +43,10 @@ def translate_text(text: str):
 
 def process_file(filename: str):
     print('Translating', filename)
-    po = polib.pofile(filename)
+    po = pofile(filename)
     num_max = len(po.translated_entries())
     num_max += len(po.untranslated_entries())
-    print('Total entries:', str(num_max))
+    print('Total entries: #' + str(num_max))
     num_now = 0
     # Charge entries from .po archive
     for entry in po.translated_entries():
@@ -109,10 +106,8 @@ def print_bar(now: int, max: int, text_out: str = '', long_bar: int = 25):
         progress += 1
     bar_symbols += " " * (long_bar - progress)
     bar = "[" + bar_symbols + "]"
-    output = '\r{} {}% #{} {}'.format(get_text_color(bar, 'cian'), percent, now, text_out)
-    # print(output)
-    sys.stdout.write(output)
-    sys.stdout.flush()
+    output = '\r{} {}% {}'.format(get_text_color(bar, 'cian'), percent, text_out)
+    print(output)
 
 
 def get_text_color(text: str, color: str):
@@ -135,8 +130,8 @@ def get_text_color(text: str, color: str):
 
 def po_files_list():
     po_files = []
-    dir = os.getcwd()
-    for file in os.listdir(dir):
+    dir = getcwd()
+    for file in listdir(dir):
         if file.endswith('.po'):
             po_files.append(file)
     return po_files
@@ -146,7 +141,7 @@ if __name__ == '__main__':
     file_config = './lang.config'
     try:
         with open(file_config, "r") as file:
-            data = ast.literal_eval(file.read())
+            data = literal_eval(file.read())
             # Making sure to extract only text
         for key, value in data.items():
             data[key] = str(value)
