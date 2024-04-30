@@ -1,6 +1,7 @@
 from polib import pofile
 from re import findall
 from os import getcwd, listdir
+from os.path import exists
 from ast import literal_eval
 from src.Translators import Translators
 from src.TextStyler import *
@@ -31,6 +32,8 @@ def translate_text(text: str):
                     text_translated += translator.translate(tx) + ' '
                 text_translated = text_translated.removesuffix(' ')
             break
+        except TypeError:
+            i += 1
         except Exception as e:
             i += 1
             print(get_text_color('Error: {} : {} ({})'.format(e, text, i), 'red'))
@@ -69,6 +72,10 @@ def process_file(filename: str):
                                    get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr,
                                                                                                     'blue')))
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
+    i = 1
+    while exists(file_out):
+        file_out = file_out.replace('.po', '({}).po'.format(i))
+        i += 1
     po.save(file_out)
     print(get_progress_bar(100, get_text_color('File: ' + file_out + ' saved', 'green')))
     print('\n\n')
