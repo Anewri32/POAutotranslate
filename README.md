@@ -18,7 +18,7 @@ The program will automatically detect all files in the directory with .po extens
 ```
 {'lang_in': 'en', 'lang_out': 'es', 'provider': 'GoogleTranslate', 'key': 'None'}
 ```
-* lang_ing = Input language
+* lang_in = Input language
 * lang_out = Output language
 * provider = Translation resource provider
 * key = Key required for authentication
