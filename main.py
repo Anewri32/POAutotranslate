@@ -33,7 +33,7 @@ def translate_text(text: str):
                 text_translated = text_translated.removesuffix(' ')
             break
         except TypeError:
-            i += 1
+            break
         except Exception as e:
             i += 1
             print(get_text_color('Error: {} : {} ({})'.format(e, text, i), 'red'))
