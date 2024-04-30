@@ -3,6 +3,7 @@ from re import findall
 from os import getcwd, listdir
 from ast import literal_eval
 from src.Translators import Translators
+from src.TextStyler import *
 
 
 def translate_text(text: str):
@@ -28,12 +29,13 @@ def translate_text(text: str):
                 text_box = split_text(text, '.')
                 for tx in text_box:
                     text_translated += translator.translate(tx) + ' '
-            else:
-                text_translated = text
+                text_translated = text_translated.removesuffix(' ')
             break
         except Exception as e:
             i += 1
             print(get_text_color('Error: {} : {} ({})'.format(e, text, i), 'red'))
+    if not text_translated:
+        text_translated = text
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
         text_translated = text_translated.replace(placeholder, bracketed_text)
@@ -50,76 +52,26 @@ def process_file(filename: str):
     num_now = 0
     # Charge entries from .po archive
     for entry in po.translated_entries():
-        if entry.msgid:
-            if entry.msgid.__eq__('default (' + translator.lang_in + ')'):
-                entry.msgstr = '{} ({})'.format(translator.provider, translator.lang_out)
-            else:
-                entry.msgstr = translate_text(entry.msgid)
-            print_bar(num_now, num_max,
-                      get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue'))
         num_now += 1
-
+        if entry.msgid:
+            entry.msgstr = translate_text(entry.msgid)
+            # We obtain the progress bar by passing the calculated percentage and the colored text as parameters.
+            print(get_progress_bar(int((num_now * 100) / num_max),
+                                   get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr,
+                                                                                                    'blue')))
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
-        if entry.msgid:
-            if entry.msgid.__eq__('default (' + translator.lang_in + ')'):
-                entry.msgstr = '{} ({})'.format(translator.provider, translator.lang_out)
-            else:
-                entry.msgstr = translate_text(entry.msgid)
-            print_bar(num_now, num_max,
-                      get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue'))
         num_now += 1
+        if entry.msgid:
+            entry.msgstr = translate_text(entry.msgid)
+            # We obtain the progress bar by passing the calculated percentage and the colored text as parameters.
+            print(get_progress_bar(int((num_now * 100) / num_max),
+                                   get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr,
+                                                                                                    'blue')))
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     po.save(file_out)
-    print_bar(num_now, num_max, get_text_color('File: ' + file_out + ' saved', 'green'))
+    print(get_progress_bar(100, get_text_color('File: ' + file_out + ' saved', 'green')))
     print('\n\n')
-
-
-def split_text(text: str, delimit: str):
-    lines = []
-    line_now = ''
-    for character in text:
-        if character in delimit:
-            if line_now:
-                lines.append(line_now)
-            line_now = ''
-        else:
-            line_now += character
-    if line_now:
-        lines.append(line_now)
-    return lines
-
-
-def print_bar(now: int, max: int, text_out: str = '', long_bar: int = 25):
-    percent = int((now * 100) / max)
-    progress_float = percent / 100 * long_bar
-    progress = int(progress_float)
-    bar_symbols = "=" * progress
-    if (progress_float - progress) >= 0.5:
-        bar_symbols += '-'
-        progress += 1
-    bar_symbols += " " * (long_bar - progress)
-    bar = "[" + bar_symbols + "]"
-    output = '\r{} {}% {}'.format(get_text_color(bar, 'cian'), percent, text_out)
-    print(output)
-
-
-def get_text_color(text: str, color: str):
-    colors = {
-        'black': '\033[30m',
-        'red': '\033[31m',
-        'green': '\033[32m',
-        'yellow': '\033[33m',
-        'blue': '\033[34m',
-        'magenta': '\033[35m',
-        'cian': '\033[36m',
-        'white': '\033[37m'
-    }
-    color_reset = '\033[0m'
-    if color.lower() in colors:
-        return colors[color.lower()] + text + color_reset
-    else:
-        return text
 
 
 def po_files_list():
@@ -131,14 +83,14 @@ def po_files_list():
     return po_files
 
 
-if __name__ == '__main__':
-    file_config = './lang.config'
+def charge_file(file_config: str):
     try:
         with open(file_config, "r") as file:
             data = literal_eval(file.read())
             # Making sure to extract only text
         for key, value in data.items():
             data[key] = str(value)
+        return data
     except:
         try:
             with open(file_config, "w") as file:
@@ -147,8 +99,13 @@ if __name__ == '__main__':
                         'provider': 'GoogleTranslate',
                         'key': 'None'}
                 file.write(str(data))
+                return data
         except Exception as e:
             raise Exception(e)
+
+
+if __name__ == '__main__':
+    data = charge_file('./lang.config')
     translator = Translators(lang_in=data['lang_in'],
                              lang_out=data['lang_out'],
                              provider=data['provider'],
