@@ -15,7 +15,7 @@ def split_text(text: str, delimit: str):
     return lines
 
 
-def get_progress_bar(percent: int, text_out: str = '', long_bar: int = 25):
+def get_progress_bar(percent: int, long_bar: int = 25):
     progress_float = percent / 100 * long_bar
     progress = int(progress_float)
     bar_symbols = "=" * progress
@@ -24,7 +24,7 @@ def get_progress_bar(percent: int, text_out: str = '', long_bar: int = 25):
         progress += 1
     bar_symbols += " " * (long_bar - progress)
     bar = "[" + bar_symbols + "]"
-    return '\r{} {}% {}'.format(get_text_color(bar, 'cian'), percent, text_out)
+    return '\r{} {}%'.format(get_text_color(bar, 'cian'), percent)
 
 
 def get_text_color(text: str, color: str):

@@ -1,3 +1,4 @@
+import sys
 from polib import pofile
 from re import findall
 from os import getcwd, listdir
@@ -14,9 +15,9 @@ def translate_text(text: str):
     bracketed_texts = findall(r'\[([^\[\]]*?)]', text)
 
     # Replace each bracketed text with a unique placeholder
-    text = text.replace('\n', '__PPPPPPPPOOOOOOOO_P0__')
+    text = text.replace('\n', '__PPPPOOOO_P0__')
     for i, bracketed_text in enumerate(bracketed_texts):
-        placeholder = f'__PPPPPPPPOOOOOOOO_{i}__'
+        placeholder = f'__kkkk5555_{i}__'
         placeholders[placeholder] = f'[{bracketed_text}]'
         text = text.replace(f'[{bracketed_text}]', placeholder)
 
@@ -42,8 +43,14 @@ def translate_text(text: str):
     # Replace the placeholders back with the original bracketed text
     for placeholder, bracketed_text in placeholders.items():
         text_translated = text_translated.replace(placeholder, bracketed_text)
-    text_translated = text_translated.replace('__PPPPPPPPOOOOOOOO_P0__', '\n')
+    text_translated = text_translated.replace('__PPPPOOOO_P0__', '\n')
     return text_translated
+
+
+def print_status(txt: str, now, max):
+    progress_bar = get_progress_bar(int((now * 100) / max))
+    print(progress_bar, txt)
+
 
 
 def process_file(filename: str):
@@ -59,18 +66,18 @@ def process_file(filename: str):
         if entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
             # We obtain the progress bar by passing the calculated percentage and the colored text as parameters.
-            print(get_progress_bar(int((num_now * 100) / num_max),
-                                   get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr,
-                                                                                                    'blue')))
+            text = get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue')
+            print_status(text, num_now, num_max)
+
     # Charge entries from .po archive, entries not translated
     for entry in po.untranslated_entries():
         num_now += 1
         if entry.msgid:
             entry.msgstr = translate_text(entry.msgid)
             # We obtain the progress bar by passing the calculated percentage and the colored text as parameters.
-            print(get_progress_bar(int((num_now * 100) / num_max),
-                                   get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr,
-                                                                                                    'blue')))
+            text = get_text_color(entry.msgid, 'magenta') + ' -> ' + get_text_color(entry.msgstr, 'blue')
+            print_status(text, num_now, num_max)
+
     file_out = filename.replace('.po', '_' + data['lang_out'] + '.po')
     i = 1
     while exists(file_out):
