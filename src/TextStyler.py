@@ -1,5 +1,3 @@
-
-
 def split_text(text: str, delimit: str):
     lines = []
     line_now = ''
@@ -15,19 +13,20 @@ def split_text(text: str, delimit: str):
     return lines
 
 
-def get_progress_bar(percent: int, long_bar: int = 25):
+def get_progress_bar(percent: float, long_bar: float = 25):
     progress_float = percent / 100 * long_bar
     progress = int(progress_float)
     bar_symbols = "=" * progress
     if (progress_float - progress) >= 0.5:
         bar_symbols += '-'
         progress += 1
-    bar_symbols += " " * (long_bar - progress)
+    bar_symbols += " " * (int(long_bar) - progress)
     bar = "[" + bar_symbols + "]"
     return '\r{} {}%'.format(get_text_color(bar, 'cian'), percent)
 
 
 def get_text_color(text: str, color: str):
+    color = color.lower()
     colors = {
         'black': '\033[30m',
         'red': '\033[31m',
@@ -38,9 +37,4 @@ def get_text_color(text: str, color: str):
         'cian': '\033[36m',
         'white': '\033[37m'
     }
-    color_reset = '\033[0m'
-    if color.lower() in colors:
-        return colors[color.lower()] + text + color_reset
-    else:
-        return text
-
+    return colors.get(color, '') + text + '\033[0m'
